@@ -1,6 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 const categories = [
   {
@@ -324,116 +325,155 @@ const categories = [
   },
 ];
 
-export default function CategoriesPage() {
-  const searchParams = useSearchParams();
+function CategoriesContent() {
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const categoryParam = searchParams.get("category");
-    if (categoryParam) {
-      const category = categories.find((cat) => cat.id === categoryParam);
-      if (category) {
-        setSelectedCategory(category);
+    const category = searchParams.get("category");
+    if (category) {
+      const foundCategory = categories.find((c) => c.id === category);
+      if (foundCategory) {
+        setSelectedCategory(foundCategory);
       }
     }
   }, [searchParams]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-center mb-12 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
         AI工具分类
       </h1>
 
-      <div className="grid md:grid-cols-3 gap-6 mb-12">
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => setSelectedCategory(category)}
-            className={`p-6 rounded-xl text-left transition-all duration-300 ${
-              selectedCategory?.id === category.id
-                ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl scale-[1.02]"
-                : "bg-white hover:bg-gray-50 border-2 border-gray-200 hover:shadow-lg hover:scale-[1.01]"
-            }`}
-          >
-            <h2 className="text-xl font-semibold mb-2">{category.name}</h2>
-            <p
-              className={`${
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* 左侧分类列表 */}
+        <div className="space-y-4 max-h-[800px] overflow-y-auto pr-4">
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => setSelectedCategory(category)}
+              className={`w-full p-6 rounded-xl text-left transition-all duration-300 ${
                 selectedCategory?.id === category.id
-                  ? "text-white/80"
-                  : "text-gray-600"
+                  ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl scale-[1.02]"
+                  : "bg-white hover:bg-gray-50 border-2 border-gray-200 hover:shadow-lg hover:scale-[1.01]"
               }`}
             >
-              {category.description}
-            </p>
-          </button>
-        ))}
-      </div>
-
-      {selectedCategory && (
-        <div className="bg-white p-8 rounded-xl shadow-xl">
-          <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            {selectedCategory.name}类工具推荐
-          </h2>
-          <div className="space-y-6">
-            {selectedCategory.tools.map((tool, index) => (
-              <div
-                key={index}
-                className="border-b border-gray-200 pb-6 last:border-0"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-2xl font-semibold mb-3">{tool.name}</h3>
-                    <p className="text-gray-600 mb-4">{tool.description}</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {tool.features.map((feature, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
-                        >
-                          {feature}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="space-y-2 mb-4">
-                      {Object.entries(tool.price).map(([plan, price]) => (
-                        <div key={plan} className="text-sm">
-                          <span className="font-medium text-gray-700">
-                            {plan}:{" "}
-                          </span>
-                          <span className="text-gray-600">{price}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <a
-                      href={tool.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
-                    >
-                      <span className="flex items-center">
-                        访问网站
-                        <svg
-                          className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-300"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                          />
-                        </svg>
-                      </span>
-                    </a>
-                  </div>
+              <div className="flex items-start gap-4">
+                <span className="text-4xl">{category.icon}</span>
+                <div>
+                  <h2 className="text-xl font-semibold mb-2">
+                    {category.name}
+                  </h2>
+                  <p
+                    className={`${
+                      selectedCategory?.id === category.id
+                        ? "text-white/80"
+                        : "text-gray-600"
+                    }`}
+                  >
+                    {category.description}
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
+            </button>
+          ))}
         </div>
-      )}
+
+        {/* 右侧详细信息 */}
+        {selectedCategory && (
+          <div className="bg-white p-8 rounded-xl shadow-xl sticky top-8">
+            <div className="flex items-center gap-4 mb-8">
+              <span className="text-5xl">{selectedCategory.icon}</span>
+              <div>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  {selectedCategory.name}
+                </h2>
+                <p className="text-gray-600 mt-2">
+                  {selectedCategory.description}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold mb-4">推荐工具</h3>
+              <div className="space-y-4">
+                {selectedCategory.tools.map((tool, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 p-6 rounded-xl hover:shadow-md transition-shadow duration-300"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="text-xl font-semibold mb-2">
+                          {tool.name}
+                        </h4>
+                        <p className="text-gray-600 mb-4">{tool.description}</p>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {tool.features.map((feature, idx) => (
+                            <span
+                              key={idx}
+                              className="px-3 py-1 bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 rounded-full text-sm"
+                            >
+                              {feature}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {Object.entries(tool.price).map(([plan, price]) => (
+                            <span
+                              key={plan}
+                              className="px-3 py-1 bg-gradient-to-r from-green-100 to-blue-100 text-green-700 rounded-full text-sm"
+                            >
+                              {price}
+                            </span>
+                          ))}
+                        </div>
+                        <a
+                          href={tool.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
+                        >
+                          <span className="flex items-center">
+                            访问网站
+                            <svg
+                              className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-300"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                              />
+                            </svg>
+                          </span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
+  );
+}
+
+export default function CategoriesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          加载中...
+        </div>
+      }
+    >
+      <CategoriesContent />
+    </Suspense>
   );
 }
